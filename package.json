@@ -1,7 +1,7 @@
 {
   "name": "zustand-chrome-storage",
   "version": "1.0.0",
-  "description": "",
+  "description": "Zustand StateStorage based on chrome.storage API",
   "type": "module",
   "source": "src/index.ts",
   "exports": {
