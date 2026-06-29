@@ -1,102 +1,43 @@
-import { StateStorage } from "zustand/middleware";
+import type { StateStorage } from "zustand/middleware";
 
-const ChromeLocalStorage: StateStorage = {
-  getItem: (name) => {
-    return new Promise<string>((resolve, reject) => {
-      chrome.storage.local.get(name, (result) => {
-        if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
-        }
-        resolve(result[name]);
+function createChromeStorage(storage: chrome.storage.StorageArea): StateStorage {
+  return {
+    getItem: (name) => {
+      return new Promise<string | null>((resolve, reject) => {
+        storage.get(name, (result) => {
+          if (chrome.runtime.lastError) {
+            return reject(chrome.runtime.lastError);
+          }
+          const value = result[name];
+          resolve(typeof value === "string" ? value : null);
+        });
       });
-    });
-  },
-  setItem: (name, value) => {
-    return new Promise<void>((resolve, reject) => {
-      chrome.storage.local.set({ [name]: value }, () => {
-        if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
-        }
-        resolve();
+    },
+    setItem: (name, value) => {
+      return new Promise<void>((resolve, reject) => {
+        storage.set({ [name]: value }, () => {
+          if (chrome.runtime.lastError) {
+            return reject(chrome.runtime.lastError);
+          }
+          resolve();
+        });
       });
-    });
-  },
-  removeItem: (name) => {
-    return new Promise<void>((resolve, reject) => {
-      chrome.storage.local.remove(name, () => {
-        if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
-        }
-        resolve();
+    },
+    removeItem: (name) => {
+      return new Promise<void>((resolve, reject) => {
+        storage.remove(name, () => {
+          if (chrome.runtime.lastError) {
+            return reject(chrome.runtime.lastError);
+          }
+          resolve();
+        });
       });
-    });
-  },
-};
+    },
+  };
+}
 
-const ChromeSyncStorage: StateStorage = {
-  getItem: (name) => {
-    return new Promise<string>((resolve, reject) => {
-      chrome.storage.sync.get(name, (result) => {
-        if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
-        }
-        resolve(result[name]);
-      });
-    });
-  },
-  setItem: (name, value) => {
-    return new Promise<void>((resolve, reject) => {
-      chrome.storage.sync.set({ [name]: value }, () => {
-        if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
-        }
-        resolve();
-      });
-    });
-  },
-  removeItem: (name) => {
-    return new Promise<void>((resolve, reject) => {
-      chrome.storage.sync.remove(name, () => {
-        if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
-        }
-        resolve();
-      });
-    });
-  },
-};
-
-const ChromeSessionStorage: StateStorage = {
-  getItem: (name) => {
-    return new Promise<string>((resolve, reject) => {
-      chrome.storage.session.get(name, (result) => {
-        if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
-        }
-        resolve(result[name]);
-      });
-    });
-  },
-  setItem: (name, value) => {
-    return new Promise<void>((resolve, reject) => {
-      chrome.storage.session.set({ [name]: value }, () => {
-        if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
-        }
-        resolve();
-      });
-    });
-  },
-  removeItem: (name) => {
-    return new Promise<void>((resolve, reject) => {
-      chrome.storage.session.remove(name, () => {
-        if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
-        }
-        resolve();
-      });
-    });
-  },
-};
+const ChromeLocalStorage = createChromeStorage(chrome.storage.local);
+const ChromeSyncStorage = createChromeStorage(chrome.storage.sync);
+const ChromeSessionStorage = createChromeStorage(chrome.storage.session);
 
 export { ChromeLocalStorage, ChromeSessionStorage, ChromeSyncStorage };

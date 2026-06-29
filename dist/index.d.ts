@@ -1,4 +1,4 @@
-import { StateStorage } from "zustand/middleware";
+import type { StateStorage } from "zustand/middleware";
 declare const ChromeLocalStorage: StateStorage;
 declare const ChromeSyncStorage: StateStorage;
 declare const ChromeSessionStorage: StateStorage;

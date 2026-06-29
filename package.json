@@ -15,7 +15,8 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "microbundle",
-    "dev": "microbundle watch"
+    "dev": "microbundle watch",
+    "test": "npm run build && node --test"
   },
   "keywords": [
     "zustand",
