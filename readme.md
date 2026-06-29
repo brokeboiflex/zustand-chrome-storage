@@ -7,9 +7,9 @@ Refer to `chrome.storage` [documentation](https://developer.chrome.com/docs/exte
 
 ```js
 import {
-  ChromeLocalStorage,
-  ChromeSessionStorage,
-  ChromeSyncStorage,
+  getChromeLocalStorage,
+  getChromeSessionStorage,
+  getChromeSyncStorage,
 } from "zustand-chrome-storage";
 
 const useFishLocalStore = create(
@@ -20,7 +20,7 @@ const useFishLocalStore = create(
     }),
     {
       name: "food-storage", // Name of the item in chrome.storage.local
-      storage: createJSONStorage(() => ChromeLocalStorage),
+      storage: createJSONStorage(getChromeLocalStorage),
     }
   )
 );
@@ -33,7 +33,7 @@ const useFishSessionStore = create(
     }),
     {
       name: "food-storage", // Name of the item in chrome.storage.session
-      storage: createJSONStorage(() => ChromeSessionStorage),
+      storage: createJSONStorage(getChromeSessionStorage),
     }
   )
 );
@@ -45,8 +45,13 @@ const useFishSyncStore = create(
     }),
     {
       name: "food-storage", // Name of the item in chrome.storage.sync
-      storage: createJSONStorage(() => ChromeSyncStorage),
+      storage: createJSONStorage(getChromeSyncStorage),
     }
   )
 );
 ```
+
+The direct `ChromeLocalStorage`, `ChromeSessionStorage`, and `ChromeSyncStorage`
+objects are still exported for existing code. The getter functions are preferred
+because Zustand's `createJSONStorage` can catch unavailable Chrome storage during
+initialization.
