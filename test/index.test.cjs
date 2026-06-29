@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
+const { createJSONStorage } = require("zustand/middleware");
 
 function createArea(initial = {}) {
   const values = { ...initial };
@@ -20,13 +21,18 @@ function createArea(initial = {}) {
 }
 
 function installChromeMock({ local = {}, sync = {}, session = {} } = {}) {
+  const storage = {
+    local: createArea(local),
+    sync: createArea(sync),
+  };
+
+  if (session !== false) {
+    storage.session = createArea(session);
+  }
+
   global.chrome = {
     runtime: { lastError: null },
-    storage: {
-      local: createArea(local),
-      sync: createArea(sync),
-      session: createArea(session),
-    },
+    storage,
   };
 }
 
@@ -37,6 +43,20 @@ test.beforeEach(() => {
 
 test.afterEach(() => {
   delete global.chrome;
+});
+
+test("module can be imported before chrome exists", async () => {
+  delete global.chrome;
+  delete require.cache[require.resolve("../dist/index.cjs")];
+
+  assert.doesNotThrow(() => require("../dist/index.cjs"));
+});
+
+test("zustand createJSONStorage receives undefined when chrome storage is unavailable", async () => {
+  delete global.chrome;
+  const { getChromeLocalStorage } = require("../dist/index.cjs");
+
+  assert.equal(createJSONStorage(getChromeLocalStorage), undefined);
 });
 
 test("getItem returns null for missing keys", async () => {
@@ -71,9 +91,29 @@ test("setItem and removeItem proxy to the selected chrome storage area", async (
   assert.equal(global.chrome.storage.local.values.food, undefined);
 });
 
+test("available storage areas still work when another area is unsupported", async () => {
+  installChromeMock({ local: { food: "{\"state\":{\"fishes\":1}}" }, session: false });
+  delete require.cache[require.resolve("../dist/index.cjs")];
+  const { ChromeLocalStorage, ChromeSessionStorage } = require("../dist/index.cjs");
+
+  assert.equal(await ChromeLocalStorage.getItem("food"), "{\"state\":{\"fishes\":1}}");
+  await assert.rejects(() => ChromeSessionStorage.getItem("food"), /chrome\.storage\.session is unavailable/);
+});
+
+test("createChromeStorage supports custom chrome-compatible storage areas", async () => {
+  const customArea = createArea({ food: "{\"state\":{\"fishes\":3}}" });
+  const { createChromeStorage } = require("../dist/index.cjs");
+  const storage = createChromeStorage(customArea);
+
+  assert.equal(await storage.getItem("food"), "{\"state\":{\"fishes\":3}}");
+
+  await storage.setItem("food", "{\"state\":{\"fishes\":4}}");
+  assert.equal(customArea.values.food, "{\"state\":{\"fishes\":4}}");
+});
+
 test("chrome runtime errors reject storage operations", async () => {
   global.chrome.storage.local.get = (_name, callback) => {
-    global.chrome.runtime.lastError = new Error("quota exceeded");
+    global.chrome.runtime.lastError = { message: "quota exceeded" };
     callback({});
   };
   const { ChromeLocalStorage } = require("../dist/index.cjs");
