@@ -25,11 +25,12 @@
   ],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "zustand": "^4.5.4"
+  "peerDependencies": {
+    "zustand": ">=4.5.0 <6"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",
-    "microbundle": "^0.15.1"
+    "microbundle": "^0.15.1",
+    "zustand": "^5.0.14"
   }
 }
