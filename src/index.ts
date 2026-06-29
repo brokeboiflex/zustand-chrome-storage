@@ -95,9 +95,15 @@ export function createChromeStorage(storage: ChromeStorageResolver): StateStorag
   };
 }
 
-const ChromeLocalStorage = createChromeStorage(() => getChromeStorageArea("local"));
-const ChromeSyncStorage = createChromeStorage(() => getChromeStorageArea("sync"));
-const ChromeSessionStorage = createChromeStorage(() => getChromeStorageArea("session"));
+const ChromeLocalStorage: StateStorage = createChromeStorage(() =>
+  getChromeStorageArea("local")
+);
+const ChromeSyncStorage: StateStorage = createChromeStorage(() =>
+  getChromeStorageArea("sync")
+);
+const ChromeSessionStorage: StateStorage = createChromeStorage(() =>
+  getChromeStorageArea("session")
+);
 
 function getChromeLocalStorage(): StateStorage {
   getChromeStorageArea("local");
